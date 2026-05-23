@@ -158,9 +158,9 @@
     </div>
 
     <script>
-        // Твои проверенные доступы Supabase
+        // !!! ВНИМАНИЕ: Замени КЛЮЧ на настоящий длинный JWT-токен из панели Supabase (начинается с eyJ...) !!!
         const SUPABASE_URL = 'https://nfbfynjojzissgriesaf.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_ACa94xdo6KBsxNAmLoy4tQ_SKxK1Cn7';
+        const SUPABASE_ANON_KEY = 'sb_publishable_ACa94xdo6KBsxNAmLoy4tQ_SKxK1Cn7'; 
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let myUsername = localStorage.getItem('bg_username') || 'user_' + Math.floor(Math.random() * 10000);
@@ -184,7 +184,6 @@
             } catch (e) {
                 console.error("Сбой сети профиля:", e);
             }
-            updateProfileUI();
         }
 
         function updateProfileUI() {
@@ -236,6 +235,7 @@
             myDisplayName = newDN;
             localStorage.setItem('bg_display_name', myDisplayName);
 
+            updateProfileUI();
             await syncProfileWithDB();
             toggleModal(false);
             trackPresence(); 
@@ -249,13 +249,13 @@
                 
                 if(error) {
                     container.innerHTML = `<div class="db-error-alert">Ошибка таблиц!</div>`;
-                    document.getElementById('currentChannelName').innerText = 'Ошибка: Таблица "channels" не найдена в Supabase!';
+                    document.getElementById('currentChannelName').innerText = 'Ошибка: Таблица "channels" не найдена!';
                     return;
                 }
 
                 if(!data || data.length === 0) {
                     container.innerHTML = `<div>Каналы отсутствуют</div>`;
-                    document.getElementById('currentChannelName').innerText = 'В базе нет комнат. Запусти SQL-скрипт!';
+                    document.getElementById('currentChannelName').innerText = 'В базе нет комнат. Создай их в Supabase!';
                     return;
                 }
 
@@ -281,7 +281,6 @@
             document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
             btnElement.classList.add('active');
             
-            // Сбрасываем строку поиска при переходе в другой канал
             document.getElementById('searchNickInput').value = '';
             loadMessages();
         }
@@ -299,7 +298,6 @@
                     .order('created_at', { ascending: true });
 
                 if (error) {
-                    // Если релейшн profiles сломался, грузим сообщения «голыми»
                     const { data: fallbackData } = await supabase.from('messages').select('*').eq('channel_id', currentChannelId).order('created_at', { ascending: true });
                     list.innerHTML = '';
                     if(fallbackData) fallbackData.forEach(renderMessage);
@@ -318,11 +316,9 @@
             }
         }
 
-        // Рендер элементов с тегами для мгновенного поиска
         function renderMessage(msg) {
             const list = document.getElementById('messagesList');
             
-            // Если в списке висит заглушка "пусто", убираем её перед вставкой
             if (list.innerText.includes('Здесь пока пусто') || list.innerText.includes('Загрузка истории')) {
                 list.innerHTML = '';
             }
@@ -335,7 +331,6 @@
             const avatar = msg.profiles && msg.profiles.avatar_url ? msg.profiles.avatar_url : '';
             const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            // Зашиваем дата-атрибуты для фильтрации поиска
             msgEl.setAttribute('data-username', username.toLowerCase());
             msgEl.setAttribute('data-displayname', displayName.toLowerCase());
             
@@ -365,11 +360,9 @@
             list.appendChild(msgEl);
             list.scrollTop = list.scrollHeight;
             
-            // Сразу применяем текущий фильтр поиска, если пользователь что-то искал
             filterMessagesByNick();
         }
 
-        // ЖИВАЯ ФИЛЬТРАЦИЯ СООБЩЕНИЙ ПО НИКУ
         function filterMessagesByNick() {
             const query = document.getElementById('searchNickInput').value.trim().toLowerCase().replace('@', '');
             const messages = document.querySelectorAll('.message');
@@ -492,10 +485,13 @@
             });
         }
 
-        // Старт клиента
+        // Старт клиента (Параллельный запуск)
         (async () => {
-            await syncProfileWithDB();
-            await loadChannels();
+            updateProfileUI(); // Рендерим профиль сразу из localStorage, не дожидаясь бэка
+            
+            // Запускаем всё асинхронно, чтобы зависший профиль не ломал загрузку каналов
+            syncProfileWithDB();
+            loadChannels();
             trackPresence();
         })();
     </script>
