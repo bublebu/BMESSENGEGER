@@ -17,13 +17,14 @@
             --text-main: #f0f3f5;
             --text-muted: #7a8590;
             --green: #26a96c;
+            --red: #f04444;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { display: flex; height: 100vh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
         
         /* Боковое меню (Слева) */
-        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid #22272d; }
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid #22272d; flex-shrink: 0; }
         .app-title { height: 60px; display: flex; align-items: center; padding: 0 20px; font-weight: 800; font-size: 19px; color: #fff; letter-spacing: 0.5px; border-bottom: 1px solid #22272d; background: linear-gradient(90deg, #fff 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .channels-list { flex: 1; padding: 16px 10px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
         .channel-btn { background: none; border: none; color: var(--text-muted); padding: 10px 14px; border-radius: 8px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
@@ -32,7 +33,13 @@
 
         /* Чат (Центр) */
         .chat-container { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); }
-        .chat-header { height: 60px; border-bottom: 1px solid #22272d; display: flex; align-items: center; padding: 0 24px; font-weight: 700; font-size: 17px; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .chat-header { height: 60px; border-bottom: 1px solid #22272d; display: flex; align-items: center; padding: 0 24px; font-weight: 700; font-size: 17px; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); justify-content: space-between; }
+        
+        /* Панель поиска сверху чата */
+        .search-wrapper { padding: 8px 24px; background-color: #15191d; border-bottom: 1px solid #22272d; display: flex; align-items: center; }
+        .search-input { background: var(--bg-input); border: 1px solid #2d353f; color: #fff; width: 100%; padding: 8px 14px; border-radius: 8px; font-size: 14px; outline: none; transition: border 0.2s; }
+        .search-input:focus { border-color: var(--accent); }
+
         .messages-list { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
         
         /* Лента сообщений */
@@ -64,13 +71,16 @@
         .settings-btn:hover { color: #fff; }
 
         /* Пользователи (Справа) */
-        .members-bar { width: 240px; background-color: var(--bg-sidebar); border-left: 1px solid #22272d; padding: 20px 16px; display: flex; flex-direction: column; gap: 10px; }
+        .members-bar { width: 240px; background-color: var(--bg-sidebar); border-left: 1px solid #22272d; padding: 20px 16px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
         .mem-title { font-size: 12px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
         .mem-row { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; transition: background 0.2s; }
         .mem-row:hover { background-color: #1c2126; }
         .status-online { width: 12px; height: 12px; background: var(--green); border-radius: 50%; position: absolute; bottom: -1px; right: -1px; border: 2.5px solid var(--bg-sidebar); }
 
-        /* Красивое Модальное Окно Настроек */
+        /* Системные плашки ошибок */
+        .db-error-alert { background-color: rgba(240, 68, 68, 0.15); border: 1px dashed var(--red); color: #ff6b6b; padding: 12px; border-radius: 8px; text-align: center; font-size: 14px; margin: 10px; }
+
+        /* Модалка Профиля */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 100; }
         .modal-content { background: var(--bg-sidebar); padding: 28px; border-radius: 16px; width: 360px; display: flex; flex-direction: column; gap: 14px; border: 1px solid #2d353f; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .modal-content h3 { color: #fff; font-size: 20px; margin-bottom: 4px; }
@@ -93,7 +103,7 @@
 
     <div class="sidebar">
         <div class="app-title">BOGDANGRAMM</div>
-        <div class="channels-list" id="channelsList"></div>
+        <div class="channels-list" id="channelsList">Поиск каналов...</div>
         
         <div class="profile-bar">
             <div class="avatar" id="myAvatar"></div>
@@ -106,7 +116,12 @@
     </div>
 
     <div class="chat-container">
-        <div class="chat-header" id="currentChannelName"># Загрузка каналов...</div>
+        <div class="chat-header" id="currentChannelName">Запуск бэкенда...</div>
+        
+        <div class="search-wrapper">
+            <input type="text" id="searchNickInput" class="search-input" placeholder="🔍 Быстрый поиск сообщений по нику или имени..." oninput="filterMessagesByNick()">
+        </div>
+
         <div class="messages-list" id="messagesList"></div>
         <div class="input-area">
             <div class="input-wrapper">
@@ -143,7 +158,7 @@
     </div>
 
     <script>
-        // Твои вшитые ключи Supabase
+        // Твои проверенные доступы Supabase
         const SUPABASE_URL = 'https://nfbfynjojzissgriesaf.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_ACa94xdo6KBsxNAmLoy4tQ_SKxK1Cn7';
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -156,14 +171,19 @@
         localStorage.setItem('bg_username', myUsername);
         localStorage.setItem('bg_display_name', myDisplayName);
 
-        // Синхронизация данных профиля с сервером
+        // Безопасная синхронизация профиля
         async function syncProfileWithDB() {
-            await supabase.from('profiles').upsert([{ 
-                username: myUsername, 
-                display_name: myDisplayName, 
-                avatar_url: myAvatarUrl,
-                last_seen: new Date().toISOString()
-            }]);
+            try {
+                const { error } = await supabase.from('profiles').upsert([{ 
+                    username: myUsername, 
+                    display_name: myDisplayName, 
+                    avatar_url: myAvatarUrl,
+                    last_seen: new Date().toISOString()
+                }]);
+                if (error) console.error("Синхронизация профиля отклонена базой:", error.message);
+            } catch (e) {
+                console.error("Сбой сети профиля:", e);
+            }
             updateProfileUI();
         }
 
@@ -189,13 +209,12 @@
             }
         }
 
-        // Сохранение кастомных ников, имен и аватарок в базу
         async function saveProfile() {
             const newDN = document.getElementById('inputDispName').value.trim();
             const newUN = document.getElementById('inputUserTag').value.trim().replace('@', '').toLowerCase();
             const avFile = document.getElementById('avatarInput').files[0];
 
-            if(!newDN || !newUN) return alert('Заполните все текстовые поля!');
+            if(!newDN || !newUN) return alert('Заполните все поля!');
 
             if(avFile) {
                 const fileExt = avFile.name.split('.').pop();
@@ -206,8 +225,6 @@
                     const { data } = supabase.storage.from('media').getPublicUrl(fileName);
                     myAvatarUrl = data.publicUrl;
                     localStorage.setItem('bg_avatar_url', myAvatarUrl);
-                } else {
-                    console.error(uploadError);
                 }
             }
 
@@ -224,23 +241,38 @@
             trackPresence(); 
         }
 
-        // Подгрузка списка каналов
+        // Подгрузка каналов без падений скрипта
         async function loadChannels() {
-            const { data, error } = await supabase.from('channels').select('*');
-            if(error) return console.error('Ошибка каналов:', error);
-
             const container = document.getElementById('channelsList');
-            container.innerHTML = '';
-            
-            data.forEach((ch, idx) => {
-                const btn = document.createElement('button');
-                btn.className = `channel-btn ${idx === 0 ? 'active' : ''}`;
-                btn.innerHTML = `<span>#</span> ${ch.name}`;
-                btn.onclick = () => switchChannel(ch.id, ch.name, btn);
-                container.appendChild(btn);
+            try {
+                const { data, error } = await supabase.from('channels').select('*');
                 
-                if(idx === 0) switchChannel(ch.id, ch.name, btn);
-            });
+                if(error) {
+                    container.innerHTML = `<div class="db-error-alert">Ошибка таблиц!</div>`;
+                    document.getElementById('currentChannelName').innerText = 'Ошибка: Таблица "channels" не найдена в Supabase!';
+                    return;
+                }
+
+                if(!data || data.length === 0) {
+                    container.innerHTML = `<div>Каналы отсутствуют</div>`;
+                    document.getElementById('currentChannelName').innerText = 'В базе нет комнат. Запусти SQL-скрипт!';
+                    return;
+                }
+
+                container.innerHTML = '';
+                data.forEach((ch, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = `channel-btn ${idx === 0 ? 'active' : ''}`;
+                    btn.innerHTML = `<span>#</span> ${ch.name}`;
+                    btn.onclick = () => switchChannel(ch.id, ch.name, btn);
+                    container.appendChild(btn);
+                    
+                    if(idx === 0) switchChannel(ch.id, ch.name, btn);
+                });
+            } catch (err) {
+                container.innerHTML = `<div class="db-error-alert">Ошибка сети</div>`;
+                console.error(err);
+            }
         }
 
         function switchChannel(id, name, btnElement) {
@@ -248,30 +280,64 @@
             document.getElementById('currentChannelName').innerText = '# ' + name;
             document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
             btnElement.classList.add('active');
+            
+            // Сбрасываем строку поиска при переходе в другой канал
+            document.getElementById('searchNickInput').value = '';
             loadMessages();
         }
 
-        // Подгрузка истории сообщений
+        // Безопасная подгрузка сообщений
         async function loadMessages() {
-            const { data } = await supabase
-                .from('messages')
-                .select('*, profiles(display_name, avatar_url)')
-                .eq('channel_id', currentChannelId)
-                .order('created_at', { ascending: true });
-
             const list = document.getElementById('messagesList');
-            list.innerHTML = '';
-            if(data) data.forEach(renderMessage);
+            list.innerHTML = 'Загрузка истории...';
+
+            try {
+                const { data, error } = await supabase
+                    .from('messages')
+                    .select('*, profiles(display_name, avatar_url)')
+                    .eq('channel_id', currentChannelId)
+                    .order('created_at', { ascending: true });
+
+                if (error) {
+                    // Если релейшн profiles сломался, грузим сообщения «голыми»
+                    const { data: fallbackData } = await supabase.from('messages').select('*').eq('channel_id', currentChannelId).order('created_at', { ascending: true });
+                    list.innerHTML = '';
+                    if(fallbackData) fallbackData.forEach(renderMessage);
+                    return;
+                }
+
+                list.innerHTML = '';
+                if(data && data.length > 0) {
+                    data.forEach(renderMessage);
+                } else {
+                    list.innerHTML = '<div style="color: var(--text-muted); text-align:center; margin-top:20px;">Здесь пока пусто. Напишите первое сообщение!</div>';
+                }
+            } catch (e) {
+                list.innerHTML = 'Не удалось загрузить сообщения.';
+                console.error(e);
+            }
         }
 
+        // Рендер элементов с тегами для мгновенного поиска
         function renderMessage(msg) {
             const list = document.getElementById('messagesList');
+            
+            // Если в списке висит заглушка "пусто", убираем её перед вставкой
+            if (list.innerText.includes('Здесь пока пусто') || list.innerText.includes('Загрузка истории')) {
+                list.innerHTML = '';
+            }
+
             const msgEl = document.createElement('div');
             msgEl.className = 'message';
             
-            const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const displayName = msg.profiles ? msg.profiles.display_name : 'Пользователь';
+            const displayName = msg.profiles ? msg.profiles.display_name : (msg.display_name || 'Пользователь');
+            const username = msg.username || 'unknown';
             const avatar = msg.profiles && msg.profiles.avatar_url ? msg.profiles.avatar_url : '';
+            const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Зашиваем дата-атрибуты для фильтрации поиска
+            msgEl.setAttribute('data-username', username.toLowerCase());
+            msgEl.setAttribute('data-displayname', displayName.toLowerCase());
             
             let avatarHtml = avatar 
                 ? `<div class="avatar" style="background-image: url(${avatar})"></div>`
@@ -289,7 +355,7 @@
                 <div class="msg-body">
                     <div class="msg-meta">
                         <span class="msg-display-name">${escapeHtml(displayName)}</span>
-                        <span class="msg-username">@${escapeHtml(msg.username || 'unknown')}</span>
+                        <span class="msg-username">@${escapeHtml(username)}</span>
                         <span class="msg-time">${time}</span>
                     </div>
                     <div class="msg-content">${escapeHtml(msg.content || '')}</div>
@@ -298,9 +364,28 @@
             `;
             list.appendChild(msgEl);
             list.scrollTop = list.scrollHeight;
+            
+            // Сразу применяем текущий фильтр поиска, если пользователь что-то искал
+            filterMessagesByNick();
         }
 
-        // Отправка сообщений
+        // ЖИВАЯ ФИЛЬТРАЦИЯ СООБЩЕНИЙ ПО НИКУ
+        function filterMessagesByNick() {
+            const query = document.getElementById('searchNickInput').value.trim().toLowerCase().replace('@', '');
+            const messages = document.querySelectorAll('.message');
+            
+            messages.forEach(msg => {
+                const uTag = msg.getAttribute('data-username') || '';
+                const dName = msg.getAttribute('data-displayname') || '';
+                
+                if (!query || uTag.includes(query) || dName.includes(query)) {
+                    msg.style.display = 'flex';
+                } else {
+                    msg.style.display = 'none';
+                }
+            });
+        }
+
         async function sendMessage() {
             const input = document.getElementById('msgInput');
             const text = input.value.trim();
@@ -314,7 +399,6 @@
             }]);
         }
 
-        // Загрузка фото и видео в медиа-хранилище
         async function uploadMedia(element) {
             const file = element.files[0];
             if(!file || !currentChannelId) return;
@@ -324,7 +408,7 @@
             const fileName = `chat_shared/${Date.now()}_${Math.floor(Math.random()*1000)}.${fileExt}`;
 
             const { error } = await supabase.storage.from('media').upload(fileName, file);
-            if(error) return alert('Ошибка загрузки: ' + error.message);
+            if(error) return alert('Ошибка хранилища: ' + error.message);
 
             const { data } = supabase.storage.from('media').getPublicUrl(fileName);
 
@@ -342,19 +426,21 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        // Подписка на сокеты Realtime
+        // Realtime Сокеты
         supabase
             .channel('messages-realtime')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
                 if(payload.new.channel_id === currentChannelId) {
-                    const { data } = await supabase.from('profiles').select('display_name, avatar_url').eq('username', payload.new.username).single();
-                    payload.new.profiles = data;
+                    try {
+                        const { data } = await supabase.from('profiles').select('display_name, avatar_url').eq('username', payload.new.username).single();
+                        payload.new.profiles = data;
+                    } catch(e){}
                     renderMessage(payload.new);
                 }
             })
             .subscribe();
 
-        // Списки онлайна (Presence)
+        // Онлайн-список (Presence)
         let presenceChannel = null;
         function trackPresence() {
             if(presenceChannel) presenceChannel.unsubscribe();
@@ -382,7 +468,7 @@
             
             const usersMap = new Map();
             Object.values(state).forEach(presences => {
-                presences.forEach(p => usersMap.set(p.username, p));
+                presences.forEach(p => { if(p.username) usersMap.set(p.username, p); });
             });
 
             document.getElementById('onlineCount').innerText = usersMap.size;
@@ -393,12 +479,12 @@
                 
                 let avHtml = user.avatar_url
                     ? `<div class="avatar" style="background-image: url(${user.avatar_url})"><div class="status-online"></div></div>`
-                    : `<div class="avatar" style="background-color: #2480f0">${user.display_name.substring(0,2).toUpperCase()}<div class="status-online"></div></div>`;
+                    : `<div class="avatar" style="background-color: #2480f0">${(user.display_name || 'U').substring(0,2).toUpperCase()}<div class="status-online"></div></div>`;
 
                 row.innerHTML = `
                     ${avHtml}
                     <div style="display: flex; flex-direction: column; overflow: hidden;">
-                        <span style="font-size: 14px; font-weight: 600; color: #fff; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${escapeHtml(user.display_name)}</span>
+                        <span style="font-size: 14px; font-weight: 600; color: #fff; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${escapeHtml(user.display_name || 'Аноним')}</span>
                         <span style="font-size: 12px; color: var(--text-muted); text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">@${escapeHtml(user.username)}</span>
                     </div>
                 `;
@@ -406,7 +492,7 @@
             });
         }
 
-        // Старт системы
+        // Старт клиента
         (async () => {
             await syncProfileWithDB();
             await loadChannels();
