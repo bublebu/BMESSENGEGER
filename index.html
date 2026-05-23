@@ -3,166 +3,562 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOGDANGRAMM</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Бэкенд-Чат</title>
+    
     <style>
         :root {
-            --bg-main: #0e1114;
-            --bg-sidebar: #14171a;
-            --bg-chat: #181c20;
-            --bg-input: #22272d;
-            --bg-profile: #111417;
-            --accent: #2480f0;
-            --accent-hover: #1b66c9;
-            --text-main: #f0f3f5;
-            --text-muted: #7a8590;
-            --green: #26a96c;
-            --red: #f04444;
+            --bg-darker: #1e1f22;
+            --bg-main: #2b2d31;
+            --bg-sidebar: #2b2d31;
+            --bg-input: #383a40;
+            --text-color: #f2f3f5;
+            --text-muted: #949ba4;
+            --accent-color: #5865f2;
+            --accent-hover: #4752c4;
+            --danger-color: #f23f43;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { display: flex; height: 100vh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
-        
-        /* Боковое меню (Слева) */
-        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid #22272d; flex-shrink: 0; }
-        .app-title { height: 60px; display: flex; align-items: center; padding: 0 20px; font-weight: 800; font-size: 19px; color: #fff; letter-spacing: 0.5px; border-bottom: 1px solid #22272d; background: linear-gradient(90deg, #fff 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .channels-list { flex: 1; padding: 16px 10px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
-        .channel-btn { background: none; border: none; color: var(--text-muted); padding: 10px 14px; border-radius: 8px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
-        .channel-btn:hover { background: #1c2126; color: #fff; }
-        .channel-btn.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(36, 128, 240, 0.2); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-        /* Чат (Центр) */
-        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); }
-        .chat-header { height: 60px; border-bottom: 1px solid #22272d; display: flex; align-items: center; padding: 0 24px; font-weight: 700; font-size: 17px; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); justify-content: space-between; }
-        
-        /* Панель поиска сверху чата */
-        .search-wrapper { padding: 8px 24px; background-color: #15191d; border-bottom: 1px solid #22272d; display: flex; align-items: center; }
-        .search-input { background: var(--bg-input); border: 1px solid #2d353f; color: #fff; width: 100%; padding: 8px 14px; border-radius: 8px; font-size: 14px; outline: none; transition: border 0.2s; }
-        .search-input:focus { border-color: var(--accent); }
+        body {
+            background-color: var(--bg-darker);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
 
-        .messages-list { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
-        
-        /* Лента сообщений */
-        .message { display: flex; gap: 14px; align-items: flex-start; padding: 6px 10px; border-radius: 8px; transition: background 0.15s; }
-        .message:hover { background-color: #1f252b; }
-        .avatar { width: 42px; height: 42px; border-radius: 50%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 15px; flex-shrink: 0; background-color: #313842; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .msg-body { display: flex; flex-direction: column; flex: 1; }
-        .msg-meta { display: flex; align-items: center; gap: 8px; }
-        .msg-display-name { font-weight: 600; color: #fff; font-size: 15px; }
-        .msg-username { font-size: 13px; color: var(--text-muted); }
-        .msg-time { font-size: 11px; color: var(--text-muted); margin-left: auto; }
-        .msg-content { font-size: 15px; margin-top: 4px; color: #e1e6eb; word-break: break-word; line-height: 1.4; }
-        .media-attachment { max-width: 100%; max-height: 320px; border-radius: 10px; margin-top: 10px; display: block; border: 1px solid #2d353f; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        /* Главный контейнер */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
 
-        /* Зона ввода */
-        .input-area { padding: 0 24px 24px 24px; background-color: var(--bg-chat); }
-        .input-wrapper { background-color: var(--bg-input); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; border: 1px solid #2d353f; transition: border 0.2s; }
-        .input-wrapper:focus-within { border-color: var(--accent); }
-        .input-wrapper input { background: none; border: none; color: var(--text-main); flex: 1; outline: none; font-size: 15px; }
-        .attach-btn { cursor: pointer; color: var(--text-muted); font-size: 22px; transition: color 0.2s; display: flex; align-items: center; }
-        .attach-btn:hover { color: var(--accent); }
+        /* Левая панель: Каналы и Профиль */
+        .sidebar-left {
+            width: 240px;
+            background-color: var(--bg-darker);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #111214;
+        }
 
-        /* Панель Профиля (Внизу слева) */
-        .profile-bar { height: 64px; background-color: var(--bg-profile); display: flex; align-items: center; padding: 0 16px; gap: 12px; border-top: 1px solid #22272d; }
-        .profile-info { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .prof-dn { font-weight: 600; color: #fff; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .prof-un { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .settings-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; transition: color 0.2s; }
-        .settings-btn:hover { color: #fff; }
+        .brand-header {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-weight: bold;
+            font-size: 16px;
+            border-bottom: 1px solid #111214;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
 
-        /* Пользователи (Справа) */
-        .members-bar { width: 240px; background-color: var(--bg-sidebar); border-left: 1px solid #22272d; padding: 20px 16px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
-        .mem-title { font-size: 12px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-        .mem-row { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; transition: background 0.2s; }
-        .mem-row:hover { background-color: #1c2126; }
-        .status-online { width: 12px; height: 12px; background: var(--green); border-radius: 50%; position: absolute; bottom: -1px; right: -1px; border: 2.5px solid var(--bg-sidebar); }
+        .channels-space {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
 
-        /* Системные плашки ошибок */
-        .db-error-alert { background-color: rgba(240, 68, 68, 0.15); border: 1px dashed var(--red); color: #ff6b6b; padding: 12px; border-radius: 8px; text-align: center; font-size: 14px; margin: 10px; }
+        .channel-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            margin-bottom: 2px;
+            transition: background 0.2s, color 0.2s;
+        }
 
-        /* Модалка Профиля */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 100; }
-        .modal-content { background: var(--bg-sidebar); padding: 28px; border-radius: 16px; width: 360px; display: flex; flex-direction: column; gap: 14px; border: 1px solid #2d353f; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .modal-content h3 { color: #fff; font-size: 20px; margin-bottom: 4px; }
-        .modal-content label { font-size: 12px; color: var(--text-muted); font-weight: bold; text-transform: uppercase; }
-        .modal-content input[type="text"] { background: var(--bg-input); border: 1px solid #2d353f; padding: 12px; border-radius: 8px; color: #fff; outline: none; font-size: 15px; }
-        .modal-content input[type="text"]:focus { border-color: var(--accent); }
-        .modal-content button { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: background 0.2s; }
-        .modal-content button:hover { background: var(--accent-hover); }
-        .modal-content .cancel-btn { background: #3a424a; margin-top: -4px; }
-        .modal-content .cancel-btn:hover { background: #47515c; }
+        .channel-btn:hover {
+            background-color: #35373c;
+            color: var(--text-color);
+        }
 
-        /* Стилизация полосы прокрутки */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #2d353f; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3e4854; }
+        .channel-btn.active {
+            background-color: #404249;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .channel-btn span {
+            margin-right: 6px;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        /* Нижний блок профиля */
+        .user-footer {
+            height: 52px;
+            background-color: #232428;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            justify-content: space-between;
+        }
+
+        .user-info-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            flex: 1;
+        }
+
+        .user-info-block:hover {
+            background-color: #35373c;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+            color: #fff;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .status-online {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background-color: #23a55a;
+            border-radius: 50%;
+            border: 2px solid #232428;
+        }
+
+        .user-names {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .display-name-txt {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-tag-txt {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-btn:hover {
+            color: var(--text-color);
+            background-color: #35373c;
+        }
+
+        /* Центральная зона чата */
+        .chat-area {
+            flex: 1;
+            background-color: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid #1f2023;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        .channel-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .search-box {
+            background-color: var(--bg-darker);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+            width: 180px;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Стили сообщений */
+        .message {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .msg-body {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .msg-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .msg-display-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .msg-username {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .msg-time {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .msg-content {
+            font-size: 15px;
+            color: #dbdee1;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
+        .media-attachment {
+            max-width: 400px;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-top: 6px;
+            border: 1px solid #1f2023;
+        }
+
+        /* Поле ввода сообщений */
+        .input-area {
+            padding: 0 16px 24px 16px;
+            background-color: var(--bg-main);
+        }
+
+        .input-wrapper {
+            background-color: var(--bg-input);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            height: 44px;
+        }
+
+        .attach-btn-label {
+            color: var(--text-muted);
+            cursor: pointer;
+            margin-right: 12px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .attach-btn-label:hover {
+            color: var(--text-color);
+        }
+
+        .main-chat-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 15px;
+            height: 100%;
+        }
+
+        /* Правая панель: Список участников */
+        .sidebar-right {
+            width: 240px;
+            background-color: var(--bg-darker);
+            border-left: 1px solid #111214;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 8px;
+        }
+
+        .members-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding-left: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .mem-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 8px;
+            border-radius: 4px;
+        }
+
+        /* Модалка настроек профиля */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .modal-card {
+            background-color: var(--bg-main);
+            width: 440px;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .form-group input[type="text"] {
+            background-color: var(--bg-darker);
+            border: 1px solid #1e1f22;
+            padding: 10px;
+            border-radius: 4px;
+            color: #fff;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: #fff;
+        }
+
+        .btn-primary:hover { background-color: var(--accent-hover); }
+
+        .btn-link {
+            background: none;
+            color: #fff;
+        }
+
+        .btn-link:hover { text-decoration: underline; }
+
+        /* Оповещение об ошибке сети */
+        .db-error-alert {
+            background-color: rgba(242, 63, 67, 0.1);
+            border: 1px solid var(--danger-color);
+            color: #ff999b;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin: 8px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="app-title">BOGDANGRAMM</div>
-        <div class="channels-list" id="channelsList">Поиск каналов...</div>
+    <div class="app-container">
         
-        <div class="profile-bar">
-            <div class="avatar" id="myAvatar"></div>
-            <div class="profile-info">
-                <div class="prof-dn" id="myDispName">Загрузка...</div>
-                <div class="prof-un" id="myUserTag">@...</div>
+        <aside class="sidebar-left">
+            <div class="brand-header">Bogdan Chat Space</div>
+            
+            <div class="channels-space" id="channelsList">
+                <div style="color: var(--text-muted); padding: 8px; font-size:14px;">Запуск бэкенда...</div>
             </div>
-            <button class="settings-btn" onclick="toggleModal(true)">⚙️</button>
-        </div>
+
+            <div class="user-footer">
+                <div class="user-info-block" onclick="toggleModal(true)">
+                    <div class="avatar" id="myAvatar">??</div>
+                    <div class="user-names">
+                        <span class="display-name-txt" id="myDispName">Загрузка...</span>
+                        <span class="user-tag-txt" id="myUserTag">@user</span>
+                    </div>
+                </div>
+                <button class="settings-btn" onclick="toggleModal(true)" title="Настройки профиля">
+                    ⚙️
+                </button>
+            </div>
+        </aside>
+
+        <main class="chat-area">
+            <div class="chat-header">
+                <div class="channel-title" id="currentChannelName"># выберите-канал</div>
+                <input type="text" class="search-box" id="searchNickInput" placeholder="Поиск по нику..." oninput= "filterMessagesByNick()">
+            </div>
+
+            <div class="messages-container" id="messagesList">
+                <div style="color: var(--text-muted); text-align:center; margin-top:40px;">Выберите канал слева для начала общения.</div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input type="file" id="mediaFileInput" accept="image/*,video/*" style="display:none;" onchange="uploadMedia(this)">
+                    <label for="mediaFileInput" class="attach-btn-label" title="Прикрепить фото/видео">+</label>
+                    
+                    <input type="text" class="main-chat-input" id="msgInput" placeholder="Написать в чат..." onkeydown="if(event.key === 'Enter') sendMessage()">
+                </div>
+            </div>
+        </main>
+
+        <aside class="sidebar-right">
+            <div class="members-title">В сети — <span id="onlineCount">0</span></div>
+            <div class="members-list" id="membersContainer">
+                </div>
+        </aside>
+
     </div>
 
-    <div class="chat-container">
-        <div class="chat-header" id="currentChannelName">Запуск бэкенда...</div>
-        
-        <div class="search-wrapper">
-            <input type="text" id="searchNickInput" class="search-input" placeholder="🔍 Быстрый поиск сообщений по нику или имени..." oninput="filterMessagesByNick()">
-        </div>
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-card">
+            <h3>Настройки профиля</h3>
+            
+            <div class="form-group">
+                <label>Никнейм в чате (Отображаемое имя)</label>
+                <input type="text" id="inputDispName" placeholder="Например: Богдан">
+            </div>
 
-        <div class="messages-list" id="messagesList"></div>
-        <div class="input-area">
-            <div class="input-wrapper">
-                <label class="attach-btn" title="Прикрепить фото или видео">
-                    🖼️
-                    <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;" onchange="uploadMedia(this)">
-                </label>
-                <input type="text" id="msgInput" placeholder="Написать сообщение..." onkeydown="if(event.key === 'Enter') sendMessage()">
+            <div class="form-group">
+                <label>Системный тег (Уникальный @ID)</label>
+                <input type="text" id="inputUserTag" placeholder="Например: frogetttt">
+            </div>
+
+            <div class="form-group">
+                <label>Сменить аватарку</label>
+                <input type="file" id="avatarInput" accept="image/*">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-link" onclick="toggleModal(false)">Отмена</button>
+                <button class="btn btn-primary" onclick="saveProfile()">Сохранить изменения</button>
             </div>
         </div>
     </div>
 
-    <div class="members-bar">
-        <div class="mem-title">В сети — <span id="onlineCount">0</span></div>
-        <div id="membersContainer" style="display: flex; flex-direction: column; gap: 4px;"></div>
-    </div>
-
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <h3>Ваш профиль</h3>
-            
-            <label>Своя Аватарка</label>
-            <input type="file" id="avatarInput" accept="image/*" style="color: var(--text-muted); font-size: 13px;">
-            
-            <label>Имя (Отображаемое)</label>
-            <input type="text" id="inputDispName" placeholder="Например: Богдан">
-            
-            <label>Уникальный Никнейм (без @)</label>
-            <input type="text" id="inputUserTag" placeholder="Например: bogdan1337">
-            
-            <button onclick="saveProfile()">Сохранить изменения</button>
-            <button class="cancel-btn" onclick="toggleModal(false)">Отмена</button>
-        </div>
-    </div>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <script>
-        // !!! ВНИМАНИЕ: Замени КЛЮЧ на настоящий длинный JWT-токен из панели Supabase (начинается с eyJ...) !!!
+        // 1. АНТИБЛОКИРОВОЧНЫЙ ФИЛЬТР: Проверяем, отдала ли сеть скрипт Supabase
+        if (typeof Supabase === 'undefined') {
+            document.addEventListener("DOMContentLoaded", () => {
+                document.getElementById('currentChannelName').innerText = '❌ Ошибка сети (РКН)';
+                document.getElementById('channelsList').innerHTML = `
+                    <div class="db-error-alert">
+                        <b>Блокировка скриптов базы данных!</b><br>
+                        Не удалось подгрузить файлы Supabase из сети.<br><br>
+                        <b>Решение:</b><br>
+                        Включи средства обхода блокировок (GoodbyeDPI, Zapret или VPN) и перезагрузи страницу.
+                    </div>
+                `;
+            });
+            throw new Error("Supabase CDN blocked. Stopping JS execution.");
+        }
+
+        // Параметры твоей базы данных
         const SUPABASE_URL = 'https://nfbfynjojzissgriesaf.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_ACa94xdo6KBsxNAmLoy4tQ_SKxK1Cn7'; 
+        // !!! Не забудь вставить рабочий анон-ключ (начинается на eyJ...) !!!
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mYmZ5bmpvanppc3Nncmllc2FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjEzMjcsImV4cCI6MjA5NTEzNzMyN30.UllcqfyMCdQLyZWGEsPl4M8g0o3ZDVe4TYRMCwm4i8s'; 
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Инициализация локального профиля юзера
         let myUsername = localStorage.getItem('bg_username') || 'user_' + Math.floor(Math.random() * 10000);
         let myDisplayName = localStorage.getItem('bg_display_name') || 'Пользователь';
         let myAvatarUrl = localStorage.getItem('bg_avatar_url') || '';
@@ -171,7 +567,7 @@
         localStorage.setItem('bg_username', myUsername);
         localStorage.setItem('bg_display_name', myDisplayName);
 
-        // Безопасная синхронизация профиля
+        // Синхронизация данных с таблицей профилей
         async function syncProfileWithDB() {
             try {
                 const { error } = await supabase.from('profiles').upsert([{ 
@@ -180,12 +576,13 @@
                     avatar_url: myAvatarUrl,
                     last_seen: new Date().toISOString()
                 }]);
-                if (error) console.error("Синхронизация профиля отклонена базой:", error.message);
+                if (error) console.error("База отклонила апдейт профиля:", error.message);
             } catch (e) {
-                console.error("Сбой сети профиля:", e);
+                console.error("Сбой синхронизации профиля:", e);
             }
         }
 
+        // Рендер аватарки и ников в левом углу
         function updateProfileUI() {
             document.getElementById('myDispName').innerText = myDisplayName;
             document.getElementById('myUserTag').innerText = '@' + myUsername;
@@ -196,7 +593,7 @@
             } else {
                 av.style.backgroundImage = 'none';
                 av.innerText = myDisplayName.substring(0, 2).toUpperCase();
-                av.style.backgroundColor = '#2480f0';
+                av.style.backgroundColor = '#5865f2';
             }
         }
 
@@ -208,6 +605,7 @@
             }
         }
 
+        // Сохранение изменений в модалке
         async function saveProfile() {
             const newDN = document.getElementById('inputDispName').value.trim();
             const newUN = document.getElementById('inputUserTag').value.trim().replace('@', '').toLowerCase();
@@ -241,21 +639,21 @@
             trackPresence(); 
         }
 
-        // Подгрузка каналов без падений скрипта
+        // Загрузка доступных каналов из базы
         async function loadChannels() {
             const container = document.getElementById('channelsList');
             try {
                 const { data, error } = await supabase.from('channels').select('*');
                 
                 if(error) {
-                    container.innerHTML = `<div class="db-error-alert">Ошибка таблиц!</div>`;
-                    document.getElementById('currentChannelName').innerText = 'Ошибка: Таблица "channels" не найдена!';
+                    container.innerHTML = `<div class="db-error-alert">Ошибка таблиц! Проверь права доступа к бэкенду.</div>`;
+                    document.getElementById('currentChannelName').innerText = 'Ошибка соединения с Supabase';
                     return;
                 }
 
                 if(!data || data.length === 0) {
-                    container.innerHTML = `<div>Каналы отсутствуют</div>`;
-                    document.getElementById('currentChannelName').innerText = 'В базе нет комнат. Создай их в Supabase!';
+                    container.innerHTML = `<div style="color:var(--text-muted); padding:8px;">Каналы отсутствуют. Создайте комнату в админ-панели.</div>`;
+                    document.getElementById('currentChannelName').innerText = 'База пуста.';
                     return;
                 }
 
@@ -270,7 +668,8 @@
                     if(idx === 0) switchChannel(ch.id, ch.name, btn);
                 });
             } catch (err) {
-                container.innerHTML = `<div class="db-error-alert">Ошибка сети</div>`;
+                container.innerHTML = `<div class="db-error-alert"><b>Ошибка сети!</b><br>Ваш провайдер блокирует домен базы данных (*.supabase.co). Включите Zapret/VPN.</div>`;
+                document.getElementById('currentChannelName').innerText = 'Подключение заблокировано провайдером!';
                 console.error(err);
             }
         }
@@ -285,10 +684,10 @@
             loadMessages();
         }
 
-        // Безопасная подгрузка сообщений
+        // Выгрузка истории сообщений конкретного канала
         async function loadMessages() {
             const list = document.getElementById('messagesList');
-            list.innerHTML = 'Загрузка истории...';
+            list.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Загрузка истории...</div>';
 
             try {
                 const { data, error } = await supabase
@@ -298,6 +697,7 @@
                     .order('created_at', { ascending: true });
 
                 if (error) {
+                    // Запасной фоллбек-запрос без джоина профилей, если сломались внешние ключи
                     const { data: fallbackData } = await supabase.from('messages').select('*').eq('channel_id', currentChannelId).order('created_at', { ascending: true });
                     list.innerHTML = '';
                     if(fallbackData) fallbackData.forEach(renderMessage);
@@ -311,11 +711,12 @@
                     list.innerHTML = '<div style="color: var(--text-muted); text-align:center; margin-top:20px;">Здесь пока пусто. Напишите первое сообщение!</div>';
                 }
             } catch (e) {
-                list.innerHTML = 'Не удалось загрузить сообщения.';
+                list.innerHTML = '<div class="db-error-alert">Не удалось загрузить сообщения. Ошибка сети.</div>';
                 console.error(e);
             }
         }
 
+        // Отрисовка сообщения на экране
         function renderMessage(msg) {
             const list = document.getElementById('messagesList');
             
@@ -336,7 +737,7 @@
             
             let avatarHtml = avatar 
                 ? `<div class="avatar" style="background-image: url(${avatar})"></div>`
-                : `<div class="avatar" style="background-color: #313842">${displayName.substring(0,2).toUpperCase()}</div>`;
+                : `<div class="avatar" style="background-color: #383a40">${displayName.substring(0,2).toUpperCase()}</div>`;
 
             let mediaHtml = '';
             if(msg.media_url) {
@@ -359,10 +760,9 @@
             `;
             list.appendChild(msgEl);
             list.scrollTop = list.scrollHeight;
-            
-            filterMessagesByNick();
         }
 
+        // Фильтрация сообщений по никнейму
         function filterMessagesByNick() {
             const query = document.getElementById('searchNickInput').value.trim().toLowerCase().replace('@', '');
             const messages = document.querySelectorAll('.message');
@@ -379,6 +779,7 @@
             });
         }
 
+        // Отправка текстового сообщения
         async function sendMessage() {
             const input = document.getElementById('msgInput');
             const text = input.value.trim();
@@ -392,6 +793,7 @@
             }]);
         }
 
+        // Загрузка медиафайла в чат
         async function uploadMedia(element) {
             const file = element.files[0];
             if(!file || !currentChannelId) return;
@@ -419,7 +821,7 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        // Realtime Сокеты
+        // Realtime подписка на новые сообщения
         supabase
             .channel('messages-realtime')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
@@ -433,7 +835,7 @@
             })
             .subscribe();
 
-        // Онлайн-список (Presence)
+        // Realtime отслеживание онлайна (Presence)
         let presenceChannel = null;
         function trackPresence() {
             if(presenceChannel) presenceChannel.unsubscribe();
@@ -455,6 +857,7 @@
                 });
         }
 
+        // Отрисовка списка пользователей онлайн
         function renderMembers(state) {
             const container = document.getElementById('membersContainer');
             container.innerHTML = '';
@@ -472,7 +875,7 @@
                 
                 let avHtml = user.avatar_url
                     ? `<div class="avatar" style="background-image: url(${user.avatar_url})"><div class="status-online"></div></div>`
-                    : `<div class="avatar" style="background-color: #2480f0">${(user.display_name || 'U').substring(0,2).toUpperCase()}<div class="status-online"></div></div>`;
+                    : `<div class="avatar" style="background-color: #5865f2">${(user.display_name || 'U').substring(0,2).toUpperCase()}<div class="status-online"></div></div>`;
 
                 row.innerHTML = `
                     ${avHtml}
@@ -485,11 +888,9 @@
             });
         }
 
-        // Старт клиента (Параллельный запуск)
-        (async () => {
-            updateProfileUI(); // Рендерим профиль сразу из localStorage, не дожидаясь бэка
-            
-            // Запускаем всё асинхронно, чтобы зависший профиль не ломал загрузку каналов
+        // Точка старта приложения
+        (() => {
+            updateProfileUI(); 
             syncProfileWithDB();
             loadChannels();
             trackPresence();
