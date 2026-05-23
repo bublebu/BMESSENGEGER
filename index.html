@@ -7,93 +7,111 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-servers: #18191b; --bg-channels: #1f2023; --bg-chat: #242528;
-            --bg-input: #2a2b2e; --bg-profile: #1a1b1e; --text-main: #e1e3e6;
-            --text-muted: #7f8489; --blurple: #4f5bdf; --green: #23a55a;
+            --bg-main: #0e1114;
+            --bg-sidebar: #14171a;
+            --bg-chat: #181c20;
+            --bg-input: #22272d;
+            --bg-profile: #111417;
+            --accent: #2480f0;
+            --accent-hover: #1b66c9;
+            --text-main: #f0f3f5;
+            --text-muted: #7a8590;
+            --green: #26a96c;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        body { display: flex; height: 100vh; background-color: var(--bg-chat); color: var(--text-main); overflow: hidden; }
-        
-        /* Каналы */
-        .sidebar { width: 260px; background-color: var(--bg-channels); display: flex; flex-direction: column; border-right: 1px solid #151618; }
-        .app-title { height: 60px; display: flex; align-items: center; padding: 0 16px; font-weight: 800; font-size: 18px; color: #fff; letter-spacing: 1px; border-bottom: 1px solid #151618; }
-        .channels-list { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
-        .channel-btn { background: none; border: none; color: var(--text-muted); padding: 10px 12px; border-radius: 6px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
-        .channel-btn:hover { background: #2a2b2e; color: #fff; }
-        .channel-btn.active { background: var(--blurple); color: #fff; }
 
-        /* Чат */
-        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); }
-        .chat-header { height: 60px; border-bottom: 1px solid #151618; display: flex; align-items: center; padding: 0 20px; font-weight: bold; font-size: 16px; color: #fff; }
-        .messages-list { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { display: flex; height: 100vh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
         
-        /* Стили Сообщений */
-        .message { display: flex; gap: 12px; align-items: flex-start; padding: 4px 8px; border-radius: 6px; }
-        .message:hover { background-color: #2a2b2e; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0; background-color: #404249; position: relative; }
+        /* Боковое меню (Слева) */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid #22272d; }
+        .app-title { height: 60px; display: flex; align-items: center; padding: 0 20px; font-weight: 800; font-size: 19px; color: #fff; letter-spacing: 0.5px; border-bottom: 1px solid #22272d; background: linear-gradient(90deg, #fff 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .channels-list { flex: 1; padding: 16px 10px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+        .channel-btn { background: none; border: none; color: var(--text-muted); padding: 10px 14px; border-radius: 8px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+        .channel-btn:hover { background: #1c2126; color: #fff; }
+        .channel-btn.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(36, 128, 240, 0.2); }
+
+        /* Чат (Центр) */
+        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); }
+        .chat-header { height: 60px; border-bottom: 1px solid #22272d; display: flex; align-items: center; padding: 0 24px; font-weight: 700; font-size: 17px; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .messages-list { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
+        
+        /* Лента сообщений */
+        .message { display: flex; gap: 14px; align-items: flex-start; padding: 6px 10px; border-radius: 8px; transition: background 0.15s; }
+        .message:hover { background-color: #1f252b; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 15px; flex-shrink: 0; background-color: #313842; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .msg-body { display: flex; flex-direction: column; flex: 1; }
-        .msg-meta { display: flex; align-items: baseline; gap: 8px; }
+        .msg-meta { display: flex; align-items: center; gap: 8px; }
         .msg-display-name { font-weight: 600; color: #fff; font-size: 15px; }
         .msg-username { font-size: 13px; color: var(--text-muted); }
-        .msg-time { font-size: 11px; color: var(--text-muted); }
-        .msg-content { font-size: 15px; margin-top: 4px; color: #dbdee1; word-break: break-word; }
-        .media-attachment { max-width: 400px; max-height: 300px; border-radius: 8px; margin-top: 8px; display: block; border: 1px solid #151618; }
+        .msg-time { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+        .msg-content { font-size: 15px; margin-top: 4px; color: #e1e6eb; word-break: break-word; line-height: 1.4; }
+        .media-attachment { max-width: 100%; max-height: 320px; border-radius: 10px; margin-top: 10px; display: block; border: 1px solid #2d353f; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 
-        /* Ввод */
-        .input-area { padding: 0 20px 24px 20px; }
-        .input-wrapper { background-color: var(--bg-input); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+        /* Зона ввода */
+        .input-area { padding: 0 24px 24px 24px; background-color: var(--bg-chat); }
+        .input-wrapper { background-color: var(--bg-input); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; border: 1px solid #2d353f; transition: border 0.2s; }
+        .input-wrapper:focus-within { border-color: var(--accent); }
         .input-wrapper input { background: none; border: none; color: var(--text-main); flex: 1; outline: none; font-size: 15px; }
-        .attach-btn { cursor: pointer; color: var(--text-muted); font-size: 20px; transition: color 0.2s; display: flex; align-items: center; }
-        .attach-btn:hover { color: #fff; }
+        .attach-btn { cursor: pointer; color: var(--text-muted); font-size: 22px; transition: color 0.2s; display: flex; align-items: center; }
+        .attach-btn:hover { color: var(--accent); }
 
         /* Панель Профиля (Внизу слева) */
-        .profile-bar { height: 60px; background-color: var(--bg-profile); display: flex; align-items: center; padding: 0 12px; gap: 10px; border-top: 1px solid #151618; }
+        .profile-bar { height: 64px; background-color: var(--bg-profile); display: flex; align-items: center; padding: 0 16px; gap: 12px; border-top: 1px solid #22272d; }
         .profile-info { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .prof-dn { font-weight: 600; color: #fff; font-size: 14px; }
-        .prof-un { font-size: 12px; color: var(--text-muted); }
-        .settings-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; }
+        .prof-dn { font-weight: 600; color: #fff; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .prof-un { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .settings-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; transition: color 0.2s; }
         .settings-btn:hover { color: #fff; }
 
-        /* Модалка настроек */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; }
-        .modal-content { background: var(--bg-channels); padding: 24px; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #35373c; }
-        .modal-content h3 { color: #fff; margin-bottom: 4px; }
-        .modal-content input { background: var(--bg-input); border: 1px solid #35373c; padding: 10px; border-radius: 6px; color: #fff; outline: none; }
-        .modal-content button { background: var(--blurple); color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .modal-content .cancel-btn { background: #4e5058; }
+        /* Пользователи (Справа) */
+        .members-bar { width: 240px; background-color: var(--bg-sidebar); border-left: 1px solid #22272d; padding: 20px 16px; display: flex; flex-direction: column; gap: 10px; }
+        .mem-title { font-size: 12px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .mem-row { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; transition: background 0.2s; }
+        .mem-row:hover { background-color: #1c2126; }
+        .status-online { width: 12px; height: 12px; background: var(--green); border-radius: 50%; position: absolute; bottom: -1px; right: -1px; border: 2.5px solid var(--bg-sidebar); }
 
-        /* Список людей справа */
-        .members-bar { width: 220px; background-color: var(--bg-channels); border-left: 1px solid #151618; padding: 20px 12px; display: flex; flex-direction: column; gap: 8px; }
-        .mem-title { font-size: 12px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
-        .mem-row { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 4px; }
-        .status-online { width: 10px; height: 10px; background: var(--green); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-channels); }
+        /* Красивое Модальное Окно Настроек */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: var(--bg-sidebar); padding: 28px; border-radius: 16px; width: 360px; display: flex; flex-direction: column; gap: 14px; border: 1px solid #2d353f; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-content h3 { color: #fff; font-size: 20px; margin-bottom: 4px; }
+        .modal-content label { font-size: 12px; color: var(--text-muted); font-weight: bold; text-transform: uppercase; }
+        .modal-content input[type="text"] { background: var(--bg-input); border: 1px solid #2d353f; padding: 12px; border-radius: 8px; color: #fff; outline: none; font-size: 15px; }
+        .modal-content input[type="text"]:focus { border-color: var(--accent); }
+        .modal-content button { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: background 0.2s; }
+        .modal-content button:hover { background: var(--accent-hover); }
+        .modal-content .cancel-btn { background: #3a424a; margin-top: -4px; }
+        .modal-content .cancel-btn:hover { background: #47515c; }
+
+        /* Стилизация полосы прокрутки */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2d353f; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3e4854; }
     </style>
 </head>
 <body>
 
-    <!-- Навигация (Слева) -->
     <div class="sidebar">
         <div class="app-title">BOGDANGRAMM</div>
-        <div class="channels-list" id="channelsList"><!-- Сюда грузятся чаты --></div>
+        <div class="channels-list" id="channelsList"></div>
         
         <div class="profile-bar">
             <div class="avatar" id="myAvatar"></div>
             <div class="profile-info">
-                <div class="prof-dn" id="myDispName">Имя</div>
-                <div class="prof-un" id="myUserTag">@nick</div>
+                <div class="prof-dn" id="myDispName">Загрузка...</div>
+                <div class="prof-un" id="myUserTag">@...</div>
             </div>
             <button class="settings-btn" onclick="toggleModal(true)">⚙️</button>
         </div>
     </div>
 
-    <!-- Чат (Центр) -->
     <div class="chat-container">
-        <div class="chat-header" id="currentChannelName"># Выберите канал</div>
+        <div class="chat-header" id="currentChannelName"># Загрузка каналов...</div>
         <div class="messages-list" id="messagesList"></div>
         <div class="input-area">
             <div class="input-wrapper">
-                <label class="attach-btn" title="Прикрепить фото/видео">
-                    📎
+                <label class="attach-btn" title="Прикрепить фото или видео">
+                    🖼️
                     <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;" onchange="uploadMedia(this)">
                 </label>
                 <input type="text" id="msgInput" placeholder="Написать сообщение..." onkeydown="if(event.key === 'Enter') sendMessage()">
@@ -101,43 +119,44 @@
         </div>
     </div>
 
-    <!-- Участники (Справа) -->
     <div class="members-bar">
-        <div class="mem-title">В сети (<span id="onlineCount">0</span>)</div>
+        <div class="mem-title">В сети — <span id="onlineCount">0</span></div>
         <div id="membersContainer" style="display: flex; flex-direction: column; gap: 4px;"></div>
     </div>
 
-    <!-- Модалка Профиля -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
-            <h3>Настройки профиля</h3>
-            <label style="font-size: 12px; color: var(--text-muted);">Аватарка</label>
-            <input type="file" id="avatarInput" accept="image/*">
-            <label style="font-size: 12px; color: var(--text-muted);">Имя (Отображаемое)</label>
-            <input type="text" id="inputDispName" placeholder="Богдан">
-            <label style="font-size: 12px; color: var(--text-muted);">Никнейм (Уникальный, без @)</label>
-            <input type="text" id="inputUserTag" placeholder="bogdan">
-            <button onclick="saveProfile()">Сохранить</button>
+            <h3>Ваш профиль</h3>
+            
+            <label>Своя Аватарка</label>
+            <input type="file" id="avatarInput" accept="image/*" style="color: var(--text-muted); font-size: 13px;">
+            
+            <label>Имя (Отображаемое)</label>
+            <input type="text" id="inputDispName" placeholder="Например: Богдан">
+            
+            <label>Уникальный Никнейм (без @)</label>
+            <input type="text" id="inputUserTag" placeholder="Например: bogdan1337">
+            
+            <button onclick="saveProfile()">Сохранить изменения</button>
             <button class="cancel-btn" onclick="toggleModal(false)">Отмена</button>
         </div>
     </div>
 
     <script>
-        // --- ПРОПИШИ СВОИ ДАННЫЕ СУПАБЕЙС ТУТ ---
-        const SUPABASE_URL = 'ТВОЙ_SUPABASE_URL';
-        const SUPABASE_ANON_KEY = 'ТВОЙ_SUPABASE_ANON_KEY';
+        // Твои вшитые ключи Supabase
+        const SUPABASE_URL = 'https://nfbfynjojzissgriesaf.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_ACa94xdo6KBsxNAmLoy4tQ_SKxK1Cn7';
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let myUsername = localStorage.getItem('bg_username') || 'user_' + Math.floor(Math.random() * 10000);
-        let myDisplayName = localStorage.getItem('bg_display_name') || 'Новый Пользователь';
+        let myDisplayName = localStorage.getItem('bg_display_name') || 'Пользователь';
         let myAvatarUrl = localStorage.getItem('bg_avatar_url') || '';
         let currentChannelId = null;
 
-        // Инициализация данных сессии
         localStorage.setItem('bg_username', myUsername);
         localStorage.setItem('bg_display_name', myDisplayName);
 
-        // Принудительно регистрируем/обновляем профиль в БД при входе
+        // Синхронизация данных профиля с сервером
         async function syncProfileWithDB() {
             await supabase.from('profiles').upsert([{ 
                 username: myUsername, 
@@ -158,7 +177,7 @@
             } else {
                 av.style.backgroundImage = 'none';
                 av.innerText = myDisplayName.substring(0, 2).toUpperCase();
-                av.style.backgroundColor = '#5865f2';
+                av.style.backgroundColor = '#2480f0';
             }
         }
 
@@ -170,15 +189,14 @@
             }
         }
 
-        // Сохранение Профиля и загрузка Аватарки
+        // Сохранение кастомных ников, имен и аватарок в базу
         async function saveProfile() {
             const newDN = document.getElementById('inputDispName').value.trim();
-            const newUN = document.getElementById('inputUserTag').value.trim().replace('@', '');
+            const newUN = document.getElementById('inputUserTag').value.trim().replace('@', '').toLowerCase();
             const avFile = document.getElementById('avatarInput').files[0];
 
-            if(!newDN || !newUN) return alert('Заполните поля!');
+            if(!newDN || !newUN) return alert('Заполните все текстовые поля!');
 
-            // Если загружают аватарку
             if(avFile) {
                 const fileExt = avFile.name.split('.').pop();
                 const fileName = `avatars/${newUN}_${Date.now()}.${fileExt}`;
@@ -188,10 +206,11 @@
                     const { data } = supabase.storage.from('media').getPublicUrl(fileName);
                     myAvatarUrl = data.publicUrl;
                     localStorage.setItem('bg_avatar_url', myAvatarUrl);
+                } else {
+                    console.error(uploadError);
                 }
             }
 
-            // Если юзер меняет сам ник, нужно почистить старый кэш
             if(newUN !== myUsername) {
                 localStorage.setItem('bg_username', newUN);
                 myUsername = newUN;
@@ -202,12 +221,14 @@
 
             await syncProfileWithDB();
             toggleModal(false);
-            trackPresence(); // Перезапускаем сокеты онлайна
+            trackPresence(); 
         }
 
-        // Загрузка Каналов
+        // Подгрузка списка каналов
         async function loadChannels() {
-            const { data } = await supabase.from('channels').select('*');
+            const { data, error } = await supabase.from('channels').select('*');
+            if(error) return console.error('Ошибка каналов:', error);
+
             const container = document.getElementById('channelsList');
             container.innerHTML = '';
             
@@ -230,7 +251,7 @@
             loadMessages();
         }
 
-        // Загрузка Сообщений по текущему Каналу
+        // Подгрузка истории сообщений
         async function loadMessages() {
             const { data } = await supabase
                 .from('messages')
@@ -249,29 +270,22 @@
             msgEl.className = 'message';
             
             const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            // Берем данные профиля из связки (если есть), иначе дефолты
-            const displayName = msg.profiles ? msg.profiles.display_name : (msg.display_name || 'Юзер');
+            const displayName = msg.profiles ? msg.profiles.display_name : 'Пользователь';
             const avatar = msg.profiles && msg.profiles.avatar_url ? msg.profiles.avatar_url : '';
             
-            let avatarContent = '';
-            if(avatar) {
-                avatarContent = `<div class="avatar" style="background-image: url(${avatar})"></div>`;
-            } else {
-                avatarContent = `<div class="avatar" style="background-color: #5865f2">${displayName.substring(0,2).toUpperCase()}</div>`;
-            }
+            let avatarHtml = avatar 
+                ? `<div class="avatar" style="background-image: url(${avatar})"></div>`
+                : `<div class="avatar" style="background-color: #313842">${displayName.substring(0,2).toUpperCase()}</div>`;
 
-            let mediaContent = '';
+            let mediaHtml = '';
             if(msg.media_url) {
-                if(msg.media_type === 'video') {
-                    mediaContent = `<video src="${msg.media_url}" controls class="media-attachment"></video>`;
-                } else {
-                    mediaContent = `<img src="${msg.media_url}" class="media-attachment" />`;
-                }
+                mediaHtml = msg.media_type === 'video'
+                    ? `<video src="${msg.media_url}" controls class="media-attachment"></video>`
+                    : `<img src="${msg.media_url}" class="media-attachment" />`;
             }
 
             msgEl.innerHTML = `
-                ${avatarContent}
+                ${avatarHtml}
                 <div class="msg-body">
                     <div class="msg-meta">
                         <span class="msg-display-name">${escapeHtml(displayName)}</span>
@@ -279,14 +293,14 @@
                         <span class="msg-time">${time}</span>
                     </div>
                     <div class="msg-content">${escapeHtml(msg.content || '')}</div>
-                    ${mediaContent}
+                    ${mediaHtml}
                 </div>
             `;
             list.appendChild(msgEl);
             list.scrollTop = list.scrollHeight;
         }
 
-        // Отправка Текста
+        // Отправка сообщений
         async function sendMessage() {
             const input = document.getElementById('msgInput');
             const text = input.value.trim();
@@ -300,7 +314,7 @@
             }]);
         }
 
-        // Загрузка ФОТО / ВИДЕО
+        // Загрузка фото и видео в медиа-хранилище
         async function uploadMedia(element) {
             const file = element.files[0];
             if(!file || !currentChannelId) return;
@@ -309,14 +323,11 @@
             const mediaType = file.type.startsWith('video') ? 'video' : 'image';
             const fileName = `chat_shared/${Date.now()}_${Math.floor(Math.random()*1000)}.${fileExt}`;
 
-            // Отправляем в бакет
             const { error } = await supabase.storage.from('media').upload(fileName, file);
-            if(error) return alert('Ошибка загрузки медиа: ' + error.message);
+            if(error) return alert('Ошибка загрузки: ' + error.message);
 
-            // Получаем ссылку
             const { data } = supabase.storage.from('media').getPublicUrl(fileName);
 
-            // Пишем сообщение в базу с медиа-данными
             await supabase.from('messages').insert([{
                 channel_id: currentChannelId,
                 username: myUsername,
@@ -324,19 +335,18 @@
                 media_url: data.publicUrl,
                 media_type: mediaType
             }]);
-            element.value = ''; // Сброс инпута
+            element.value = '';
         }
 
         function escapeHtml(str) {
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        // РЕАЛТАЙМ СОБЫТИЯ ЧАТА
+        // Подписка на сокеты Realtime
         supabase
             .channel('messages-realtime')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
                 if(payload.new.channel_id === currentChannelId) {
-                    // Тянем инфо о юзере, чтобы подставить актуальную аву
                     const { data } = await supabase.from('profiles').select('display_name, avatar_url').eq('username', payload.new.username).single();
                     payload.new.profiles = data;
                     renderMessage(payload.new);
@@ -344,7 +354,7 @@
             })
             .subscribe();
 
-        // ОНЛАЙН СТАТУС (Presence)
+        // Списки онлайна (Presence)
         let presenceChannel = null;
         function trackPresence() {
             if(presenceChannel) presenceChannel.unsubscribe();
@@ -381,25 +391,22 @@
                 const row = document.createElement('div');
                 row.className = 'mem-row';
                 
-                let avHtml = '';
-                if(user.avatar_url) {
-                    avHtml = `<div class="avatar" style="background-image: url(${user.avatar_url})"><div class="status-online"></div></div>`;
-                } else {
-                    avHtml = `<div class="avatar" style="background-color: #4f5bdf">${user.display_name.substring(0,2).toUpperCase()}<div class="status-online"></div></div>`;
-                }
+                let avHtml = user.avatar_url
+                    ? `<div class="avatar" style="background-image: url(${user.avatar_url})"><div class="status-online"></div></div>`
+                    : `<div class="avatar" style="background-color: #2480f0">${user.display_name.substring(0,2).toUpperCase()}<div class="status-online"></div></div>`;
 
                 row.innerHTML = `
                     ${avHtml}
-                    <div style="display: flex; flex-direction: column;">
-                        <span style="font-size: 14px; font-weight: 600; color: #fff;">${escapeHtml(user.display_name)}</span>
-                        <span style="font-size: 11px; color: var(--text-muted);">@${escapeHtml(user.username)}</span>
+                    <div style="display: flex; flex-direction: column; overflow: hidden;">
+                        <span style="font-size: 14px; font-weight: 600; color: #fff; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${escapeHtml(user.display_name)}</span>
+                        <span style="font-size: 12px; color: var(--text-muted); text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">@${escapeHtml(user.username)}</span>
                     </div>
                 `;
                 container.appendChild(row);
             });
         }
 
-        // ЗАПУСК ПОСЛЕДОВАТЕЛЬНОСТИ
+        // Старт системы
         (async () => {
             await syncProfileWithDB();
             await loadChannels();
