@@ -3,296 +3,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DisClone Pro</title>
+    <title>BOGDANGRAMM</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-servers: #1e1f22;
-            --bg-channels: #2b2d31;
-            --bg-chat: #313338;
-            --bg-members: #2b2d31;
-            --bg-input: #383a40;
-            --bg-profile: #232428;
-            --text-main: #dbdee1;
-            --text-muted: #949ba4;
-            --blurple: #5865f2;
-            --green: #23a55a;
-            --red: #da373c;
+            --bg-servers: #18191b; --bg-channels: #1f2023; --bg-chat: #242528;
+            --bg-input: #2a2b2e; --bg-profile: #1a1b1e; --text-main: #e1e3e6;
+            --text-muted: #7f8489; --blurple: #4f5bdf; --green: #23a55a;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { display: flex; height: 100vh; background-color: var(--bg-chat); color: var(--text-main); overflow: hidden; }
-
-        /* 1. Панель Серверов (Самая левая) */
-        .server-rail { width: 72px; background-color: var(--bg-servers); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; }
-        .server-icon { width: 48px; height: 48px; background-color: #313338; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; cursor: pointer; transition: all 0.2s ease; font-size: 14px; }
-        .server-icon:hover, .server-icon.active { border-radius: 30%; background-color: var(--blurple); }
-
-        /* 2. Панель Каналов */
-        .sidebar { width: 240px; background-color: var(--bg-channels); display: flex; flex-direction: column; }
-        .server-name { height: 48px; border-bottom: 1px solid #1f2023; display: flex; align-items: center; padding: 0 16px; font-weight: bold; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .channels-list { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 2px; }
-        .channel-btn { background: none; border: none; color: var(--text-muted); padding: 8px 12px; border-radius: 4px; text-align: left; cursor: pointer; font-weight: 500; font-size: 15px; display: flex; align-items: center; gap: 6px; }
-        .channel-btn:hover { background: #35373c; color: var(--text-main); }
-        .channel-btn.active { background: #404249; color: #fff; }
-
-        /* Панель профиля внизу каналов */
-        .user-profile-bar { height: 52px; background-color: var(--bg-profile); display: flex; align-items: center; padding: 0 8px; gap: 8px; border-top: 1px solid #1f2023; }
-        .user-info { flex: 1; display: flex; flex-direction: column; overflow: hidden; cursor: pointer; padding: 4px; border-radius: 4px; }
-        .user-info:hover { background-color: #35373c; }
-        .profile-name { font-weight: 600; color: #fff; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .profile-status { font-size: 12px; color: var(--text-muted); }
-
-        /* Аватарки */
-        .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; text-transform: uppercase; flex-shrink: 0; position: relative; }
-        .avatar.large { width: 40px; height: 40px; font-size: 16px; }
-        .status-dot { width: 10px; height: 10px; background-color: var(--green); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-profile); }
-
-        /* 3. Основная зона чата */
-        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); }
-        .chat-header { height: 48px; border-bottom: 1px solid #1f2023; display: flex; align-items: center; padding: 0 16px; font-weight: bold; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); gap: 8px; }
-        .messages-list { flex: 1; padding: 20px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
         
-        /* Сообщения в стиле Дискорда */
-        .message { display: flex; gap: 16px; align-items: flex-start; }
-        .message:hover { background-color: #2e3035; margin: 0 -16px; padding: 0 16px; }
-        .msg-body { display: flex; flex-direction: column; }
-        .msg-meta { display: flex; align-items: center; gap: 8px; }
-        .msg-user { font-weight: 500; color: #f2f3f5; font-size: 15px; cursor: pointer; }
-        .msg-user:hover { text-decoration: underline; }
-        .msg-time { font-size: 12px; color: var(--text-muted); }
-        .msg-content { color: #dbdee1; font-size: 15px; margin-top: 4px; word-break: break-word; line-height: 1.375; }
+        /* Каналы */
+        .sidebar { width: 260px; background-color: var(--bg-channels); display: flex; flex-direction: column; border-right: 1px solid #151618; }
+        .app-title { height: 60px; display: flex; align-items: center; padding: 0 16px; font-weight: 800; font-size: 18px; color: #fff; letter-spacing: 1px; border-bottom: 1px solid #151618; }
+        .channels-list { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+        .channel-btn { background: none; border: none; color: var(--text-muted); padding: 10px 12px; border-radius: 6px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .channel-btn:hover { background: #2a2b2e; color: #fff; }
+        .channel-btn.active { background: var(--blurple); color: #fff; }
 
-        /* Поле ввода */
-        .input-area { padding: 0 16px 24px 16px; }
-        .input-wrapper { background-color: var(--bg-input); border-radius: 8px; padding: 12px 16px; display: flex; }
-        .input-wrapper input { background: none; border: none; color: var(--text-main); width: 100%; outline: none; font-size: 15px; }
+        /* Чат */
+        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); }
+        .chat-header { height: 60px; border-bottom: 1px solid #151618; display: flex; align-items: center; padding: 0 20px; font-weight: bold; font-size: 16px; color: #fff; }
+        .messages-list { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+        
+        /* Стили Сообщений */
+        .message { display: flex; gap: 12px; align-items: flex-start; padding: 4px 8px; border-radius: 6px; }
+        .message:hover { background-color: #2a2b2e; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0; background-color: #404249; position: relative; }
+        .msg-body { display: flex; flex-direction: column; flex: 1; }
+        .msg-meta { display: flex; align-items: baseline; gap: 8px; }
+        .msg-display-name { font-weight: 600; color: #fff; font-size: 15px; }
+        .msg-username { font-size: 13px; color: var(--text-muted); }
+        .msg-time { font-size: 11px; color: var(--text-muted); }
+        .msg-content { font-size: 15px; margin-top: 4px; color: #dbdee1; word-break: break-word; }
+        .media-attachment { max-width: 400px; max-height: 300px; border-radius: 8px; margin-top: 8px; display: block; border: 1px solid #151618; }
 
-        /* 4. Панель Участников (Справа) */
-        .members-sidebar { width: 240px; background-color: var(--bg-members); display: flex; flex-direction: column; padding: 16px 8px; gap: 4px; }
-        .members-group-title { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; padding-left: 8px; margin-bottom: 4px; }
-        .member-row { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 4px; cursor: pointer; }
-        .member-row:hover { background-color: #35373c; }
-        .member-name { font-size: 15px; font-weight: 500; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .member-row:hover .member-name { color: #fff; }
+        /* Ввод */
+        .input-area { padding: 0 20px 24px 20px; }
+        .input-wrapper { background-color: var(--bg-input); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+        .input-wrapper input { background: none; border: none; color: var(--text-main); flex: 1; outline: none; font-size: 15px; }
+        .attach-btn { cursor: pointer; color: var(--text-muted); font-size: 20px; transition: color 0.2s; display: flex; align-items: center; }
+        .attach-btn:hover { color: #fff; }
 
-        /* Стилизация скроллбара */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #2e3035; }
-        ::-webkit-scrollbar-thumb { background: #1a1b1e; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #111214; }
+        /* Панель Профиля (Внизу слева) */
+        .profile-bar { height: 60px; background-color: var(--bg-profile); display: flex; align-items: center; padding: 0 12px; gap: 10px; border-top: 1px solid #151618; }
+        .profile-info { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .prof-dn { font-weight: 600; color: #fff; font-size: 14px; }
+        .prof-un { font-size: 12px; color: var(--text-muted); }
+        .settings-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; }
+        .settings-btn:hover { color: #fff; }
+
+        /* Модалка настроек */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: var(--bg-channels); padding: 24px; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #35373c; }
+        .modal-content h3 { color: #fff; margin-bottom: 4px; }
+        .modal-content input { background: var(--bg-input); border: 1px solid #35373c; padding: 10px; border-radius: 6px; color: #fff; outline: none; }
+        .modal-content button { background: var(--blurple); color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .modal-content .cancel-btn { background: #4e5058; }
+
+        /* Список людей справа */
+        .members-bar { width: 220px; background-color: var(--bg-channels); border-left: 1px solid #151618; padding: 20px 12px; display: flex; flex-direction: column; gap: 8px; }
+        .mem-title { font-size: 12px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+        .mem-row { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 4px; }
+        .status-online { width: 10px; height: 10px; background: var(--green); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-channels); }
     </style>
 </head>
 <body>
 
-    <!-- 1. Панель Серверов -->
-    <div class="server-rail">
-        <div class="server-icon active" title="Главный Сервер">DC</div>
-        <div class="server-icon" style="background-color: #35373c; color: var(--green);" onclick="alert('Кастомные сервера — в следующем обновлении!')">+</div>
-    </div>
-
-    <!-- 2. Боковая панель (Каналы и Профиль) -->
+    <!-- Навигация (Слева) -->
     <div class="sidebar">
-        <div class="server-name">Мой Сервер</div>
-        <div class="channels-list">
-            <button class="channel-btn active"><span>#</span> общая-флудилка</button>
-            <button class="channel-btn" onclick="alert('Голос настраивается!')"><span style="font-size: 18px; line-height: 0;">🔊</span> Голосовой канал</button>
-        </div>
+        <div class="app-title">BOGDANGRAMM</div>
+        <div class="channels-list" id="channelsList"><!-- Сюда грузятся чаты --></div>
         
-        <!-- Профиль юзера -->
-        <div class="user-profile-bar">
-            <div class="avatar" id="myAvatar">У</div>
-            <div class="user-info" onclick="changeNickname()">
-                <div class="profile-name" id="myProfileName">Загрузка...</div>
-                <div class="profile-status"># в сети (клик для смены)</div>
+        <div class="profile-bar">
+            <div class="avatar" id="myAvatar"></div>
+            <div class="profile-info">
+                <div class="prof-dn" id="myDispName">Имя</div>
+                <div class="prof-un" id="myUserTag">@nick</div>
             </div>
+            <button class="settings-btn" onclick="toggleModal(true)">⚙️</button>
         </div>
     </div>
 
-    <!-- 3. Основной Чат -->
+    <!-- Чат (Центр) -->
     <div class="chat-container">
-        <div class="chat-header"><span>#</span> общая-флудилка</div>
+        <div class="chat-header" id="currentChannelName"># Выберите канал</div>
         <div class="messages-list" id="messagesList"></div>
         <div class="input-area">
             <div class="input-wrapper">
-                <input type="text" id="msgInput" placeholder="Написать в #общая-флудилка" onkeydown="if(event.key === 'Enter') sendMessage()">
+                <label class="attach-btn" title="Прикрепить фото/видео">
+                    📎
+                    <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;" onchange="uploadMedia(this)">
+                </label>
+                <input type="text" id="msgInput" placeholder="Написать сообщение..." onkeydown="if(event.key === 'Enter') sendMessage()">
             </div>
         </div>
     </div>
 
-    <!-- 4. Панель пользователей справа -->
-    <div class="members-sidebar">
-        <div class="members-group-title">В сети — <span id="onlineCount">0</span></div>
-        <div id="membersListContainer"></div>
+    <!-- Участники (Справа) -->
+    <div class="members-bar">
+        <div class="mem-title">В сети (<span id="onlineCount">0</span>)</div>
+        <div id="membersContainer" style="display: flex; flex-direction: column; gap: 4px;"></div>
+    </div>
+
+    <!-- Модалка Профиля -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h3>Настройки профиля</h3>
+            <label style="font-size: 12px; color: var(--text-muted);">Аватарка</label>
+            <input type="file" id="avatarInput" accept="image/*">
+            <label style="font-size: 12px; color: var(--text-muted);">Имя (Отображаемое)</label>
+            <input type="text" id="inputDispName" placeholder="Богдан">
+            <label style="font-size: 12px; color: var(--text-muted);">Никнейм (Уникальный, без @)</label>
+            <input type="text" id="inputUserTag" placeholder="bogdan">
+            <button onclick="saveProfile()">Сохранить</button>
+            <button class="cancel-btn" onclick="toggleModal(false)">Отмена</button>
+        </div>
     </div>
 
     <script>
-        // --- НАСТРОЙКА SUPABASE ---
+        // --- ПРОПИШИ СВОИ ДАННЫЕ СУПАБЕЙС ТУТ ---
         const SUPABASE_URL = 'ТВОЙ_SUPABASE_URL';
         const SUPABASE_ANON_KEY = 'ТВОЙ_SUPABASE_ANON_KEY';
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Хелпер генерации цвета на основе хэша никнейма (чтобы у каждого был свой постоянный цвет аватарки)
-        function getAvatarColor(username) {
-            const colors = ['#5865F2', '#57F287', '#FEE75C', '#EB459E', '#ED4245', '#1ABC9C', '#9B59B6', '#E67E22'];
-            let hash = 0;
-            for (let i = 0; i < username.length; i++) {
-                hash = username.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            return colors[Math.abs(hash) % colors.length];
+        let myUsername = localStorage.getItem('bg_username') || 'user_' + Math.floor(Math.random() * 10000);
+        let myDisplayName = localStorage.getItem('bg_display_name') || 'Новый Пользователь';
+        let myAvatarUrl = localStorage.getItem('bg_avatar_url') || '';
+        let currentChannelId = null;
+
+        // Инициализация данных сессии
+        localStorage.setItem('bg_username', myUsername);
+        localStorage.setItem('bg_display_name', myDisplayName);
+
+        // Принудительно регистрируем/обновляем профиль в БД при входе
+        async function syncProfileWithDB() {
+            await supabase.from('profiles').upsert([{ 
+                username: myUsername, 
+                display_name: myDisplayName, 
+                avatar_url: myAvatarUrl,
+                last_seen: new Date().toISOString()
+            }]);
+            updateProfileUI();
         }
 
-        // Получаем или создаем имя юзера
-        let myUsername = localStorage.getItem('chat_username') || 'Юзер_' + Math.floor(Math.random() * 1000);
-        localStorage.setItem('chat_username', myUsername);
-
-        const messagesList = document.getElementById('messagesList');
-        const msgInput = document.getElementById('msgInput');
-        const membersContainer = document.getElementById('membersListContainer');
-
-        // Обновление отображения своего профиля
-        function updateMyProfileUI() {
-            document.getElementById('myProfileName').innerText = myUsername;
-            const myAvatar = document.getElementById('myAvatar');
-            myAvatar.innerText = myUsername.substring(0, 2);
-            myAvatar.style.backgroundColor = getAvatarColor(myUsername);
-            myAvatar.innerHTML += '<div class="status-dot"></div>';
-        }
-
-        // Смена никнейма по клику
-        function changeNickname() {
-            const newName = prompt('Введите новый никнейм:', myUsername);
-            if (newName && newName.trim().length > 0) {
-                myUsername = newName.trim().substring(0, 20);
-                localStorage.setItem('chat_username', myUsername);
-                updateMyProfileUI();
-                // Переподключаем онлайн-статус с новым ником
-                trackPresence();
+        function updateProfileUI() {
+            document.getElementById('myDispName').innerText = myDisplayName;
+            document.getElementById('myUserTag').innerText = '@' + myUsername;
+            const av = document.getElementById('myAvatar');
+            if(myAvatarUrl) {
+                av.style.backgroundImage = `url(${myAvatarUrl})`;
+                av.innerText = '';
+            } else {
+                av.style.backgroundImage = 'none';
+                av.innerText = myDisplayName.substring(0, 2).toUpperCase();
+                av.style.backgroundColor = '#5865f2';
             }
         }
 
-        // 1. Загрузка старых сообщений
-        async function loadHistory() {
-            const { data, error } = await supabase
+        function toggleModal(show) {
+            document.getElementById('settingsModal').style.display = show ? 'flex' : 'none';
+            if(show) {
+                document.getElementById('inputDispName').value = myDisplayName;
+                document.getElementById('inputUserTag').value = myUsername;
+            }
+        }
+
+        // Сохранение Профиля и загрузка Аватарки
+        async function saveProfile() {
+            const newDN = document.getElementById('inputDispName').value.trim();
+            const newUN = document.getElementById('inputUserTag').value.trim().replace('@', '');
+            const avFile = document.getElementById('avatarInput').files[0];
+
+            if(!newDN || !newUN) return alert('Заполните поля!');
+
+            // Если загружают аватарку
+            if(avFile) {
+                const fileExt = avFile.name.split('.').pop();
+                const fileName = `avatars/${newUN}_${Date.now()}.${fileExt}`;
+                const { error: uploadError } = await supabase.storage.from('media').upload(fileName, avFile, { upsert: true });
+                
+                if(!uploadError) {
+                    const { data } = supabase.storage.from('media').getPublicUrl(fileName);
+                    myAvatarUrl = data.publicUrl;
+                    localStorage.setItem('bg_avatar_url', myAvatarUrl);
+                }
+            }
+
+            // Если юзер меняет сам ник, нужно почистить старый кэш
+            if(newUN !== myUsername) {
+                localStorage.setItem('bg_username', newUN);
+                myUsername = newUN;
+            }
+
+            myDisplayName = newDN;
+            localStorage.setItem('bg_display_name', myDisplayName);
+
+            await syncProfileWithDB();
+            toggleModal(false);
+            trackPresence(); // Перезапускаем сокеты онлайна
+        }
+
+        // Загрузка Каналов
+        async function loadChannels() {
+            const { data } = await supabase.from('channels').select('*');
+            const container = document.getElementById('channelsList');
+            container.innerHTML = '';
+            
+            data.forEach((ch, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `channel-btn ${idx === 0 ? 'active' : ''}`;
+                btn.innerHTML = `<span>#</span> ${ch.name}`;
+                btn.onclick = () => switchChannel(ch.id, ch.name, btn);
+                container.appendChild(btn);
+                
+                if(idx === 0) switchChannel(ch.id, ch.name, btn);
+            });
+        }
+
+        function switchChannel(id, name, btnElement) {
+            currentChannelId = id;
+            document.getElementById('currentChannelName').innerText = '# ' + name;
+            document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            loadMessages();
+        }
+
+        // Загрузка Сообщений по текущему Каналу
+        async function loadMessages() {
+            const { data } = await supabase
                 .from('messages')
-                .select('*')
-                .order('created_at', { ascending: true })
-                .limit(100);
+                .select('*, profiles(display_name, avatar_url)')
+                .eq('channel_id', currentChannelId)
+                .order('created_at', { ascending: true });
 
-            if (error) console.error('Ошибка загрузки истории:', error);
-            else {
-                messagesList.innerHTML = '';
-                data.forEach(appendMessage);
-            }
+            const list = document.getElementById('messagesList');
+            list.innerHTML = '';
+            if(data) data.forEach(renderMessage);
         }
 
-        // 2. Отправка сообщения
-        async function sendMessage() {
-            const text = msgInput.value.trim();
-            if (!text) return;
-            msgInput.value = '';
-
-            const { error } = await supabase
-                .from('messages')
-                .insert([{ username: myUsername, content: text }]);
-
-            if (error) console.error('Ошибка отправки:', error);
-        }
-
-        // 3. Рендер сообщения на экране (Красивый Дискорд-стайл)
-        function appendMessage(msg) {
+        function renderMessage(msg) {
+            const list = document.getElementById('messagesList');
             const msgEl = document.createElement('div');
             msgEl.className = 'message';
             
             const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const userColor = getAvatarColor(msg.username);
-            const initials = msg.username.substring(0,2);
+            
+            // Берем данные профиля из связки (если есть), иначе дефолты
+            const displayName = msg.profiles ? msg.profiles.display_name : (msg.display_name || 'Юзер');
+            const avatar = msg.profiles && msg.profiles.avatar_url ? msg.profiles.avatar_url : '';
+            
+            let avatarContent = '';
+            if(avatar) {
+                avatarContent = `<div class="avatar" style="background-image: url(${avatar})"></div>`;
+            } else {
+                avatarContent = `<div class="avatar" style="background-color: #5865f2">${displayName.substring(0,2).toUpperCase()}</div>`;
+            }
+
+            let mediaContent = '';
+            if(msg.media_url) {
+                if(msg.media_type === 'video') {
+                    mediaContent = `<video src="${msg.media_url}" controls class="media-attachment"></video>`;
+                } else {
+                    mediaContent = `<img src="${msg.media_url}" class="media-attachment" />`;
+                }
+            }
 
             msgEl.innerHTML = `
-                <div class="avatar large" style="background-color: ${userColor}">${escapeHtml(initials)}</div>
+                ${avatarContent}
                 <div class="msg-body">
                     <div class="msg-meta">
-                        <span class="msg-user" style="color: #fff">${escapeHtml(msg.username)}</span>
+                        <span class="msg-display-name">${escapeHtml(displayName)}</span>
+                        <span class="msg-username">@${escapeHtml(msg.username || 'unknown')}</span>
                         <span class="msg-time">${time}</span>
                     </div>
-                    <div class="msg-content">${escapeHtml(msg.content)}</div>
+                    <div class="msg-content">${escapeHtml(msg.content || '')}</div>
+                    ${mediaContent}
                 </div>
             `;
-            messagesList.appendChild(msgEl);
-            messagesList.scrollTop = messagesList.scrollHeight;
+            list.appendChild(msgEl);
+            list.scrollTop = list.scrollHeight;
+        }
+
+        // Отправка Текста
+        async function sendMessage() {
+            const input = document.getElementById('msgInput');
+            const text = input.value.trim();
+            if(!text || !currentChannelId) return;
+            input.value = '';
+
+            await supabase.from('messages').insert([{
+                channel_id: currentChannelId,
+                username: myUsername,
+                content: text
+            }]);
+        }
+
+        // Загрузка ФОТО / ВИДЕО
+        async function uploadMedia(element) {
+            const file = element.files[0];
+            if(!file || !currentChannelId) return;
+
+            const fileExt = file.name.split('.').pop();
+            const mediaType = file.type.startsWith('video') ? 'video' : 'image';
+            const fileName = `chat_shared/${Date.now()}_${Math.floor(Math.random()*1000)}.${fileExt}`;
+
+            // Отправляем в бакет
+            const { error } = await supabase.storage.from('media').upload(fileName, file);
+            if(error) return alert('Ошибка загрузки медиа: ' + error.message);
+
+            // Получаем ссылку
+            const { data } = supabase.storage.from('media').getPublicUrl(fileName);
+
+            // Пишем сообщение в базу с медиа-данными
+            await supabase.from('messages').insert([{
+                channel_id: currentChannelId,
+                username: myUsername,
+                content: '',
+                media_url: data.publicUrl,
+                media_type: mediaType
+            }]);
+            element.value = ''; // Сброс инпута
         }
 
         function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        // 4. РЕАЛТАЙМ: Слушаем новые сообщения
+        // РЕАЛТАЙМ СОБЫТИЯ ЧАТА
         supabase
-            .channel('schema-db-changes')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                appendMessage(payload.new);
+            .channel('messages-realtime')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
+                if(payload.new.channel_id === currentChannelId) {
+                    // Тянем инфо о юзере, чтобы подставить актуальную аву
+                    const { data } = await supabase.from('profiles').select('display_name, avatar_url').eq('username', payload.new.username).single();
+                    payload.new.profiles = data;
+                    renderMessage(payload.new);
+                }
             })
             .subscribe();
 
-
-        // 5. ТРЕКИНГ ОНЛАЙНА (Supabase Presence)
-        let presenceChannel = supabase.channel('online_room');
-
+        // ОНЛАЙН СТАТУС (Presence)
+        let presenceChannel = null;
         function trackPresence() {
-            presenceChannel.unsubscribe(); // Сбрасываем старый, если меняли ник
+            if(presenceChannel) presenceChannel.unsubscribe();
             
-            presenceChannel = supabase.channel('online_room');
-            
+            presenceChannel = supabase.channel('online_users');
             presenceChannel
                 .on('presence', { event: 'sync' }, () => {
                     const state = presenceChannel.presenceState();
-                    renderOnlineUsers(state);
+                    renderMembers(state);
                 })
                 .subscribe(async (status) => {
                     if (status === 'SUBSCRIBED') {
                         await presenceChannel.track({
                             username: myUsername,
-                            onlineAt: new Date().toISOString()
+                            display_name: myDisplayName,
+                            avatar_url: myAvatarUrl
                         });
                     }
                 });
         }
 
-        // Отрисовка списка юзеров в сети справа
-        function renderOnlineUsers(presenceState) {
-            membersContainer.innerHTML = '';
-            const uniqueUsers = new Set();
-
-            // Собираем всех уникальных юзеров из стейта вебсокета
-            Object.values(presenceState).forEach(presences => {
-                presences.forEach(p => {
-                    uniqueUsers.add(p.username);
-                });
+        function renderMembers(state) {
+            const container = document.getElementById('membersContainer');
+            container.innerHTML = '';
+            
+            const usersMap = new Map();
+            Object.values(state).forEach(presences => {
+                presences.forEach(p => usersMap.set(p.username, p));
             });
 
-            document.getElementById('onlineCount').innerText = uniqueUsers.size;
+            document.getElementById('onlineCount').innerText = usersMap.size;
 
-            uniqueUsers.forEach(user => {
-                const userColor = getAvatarColor(user);
-                const initials = user.substring(0, 2);
-
+            usersMap.forEach(user => {
                 const row = document.createElement('div');
-                row.className = 'member-row';
+                row.className = 'mem-row';
+                
+                let avHtml = '';
+                if(user.avatar_url) {
+                    avHtml = `<div class="avatar" style="background-image: url(${user.avatar_url})"><div class="status-online"></div></div>`;
+                } else {
+                    avHtml = `<div class="avatar" style="background-color: #4f5bdf">${user.display_name.substring(0,2).toUpperCase()}<div class="status-online"></div></div>`;
+                }
+
                 row.innerHTML = `
-                    <div class="avatar" style="background-color: ${userColor}">
-                        ${escapeHtml(initials)}
-                        <div class="status-dot"></div>
+                    ${avHtml}
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 14px; font-weight: 600; color: #fff;">${escapeHtml(user.display_name)}</span>
+                        <span style="font-size: 11px; color: var(--text-muted);">@${escapeHtml(user.username)}</span>
                     </div>
-                    <div class="member-name">${escapeHtml(user)}</div>
                 `;
-                membersContainer.appendChild(row);
+                container.appendChild(row);
             });
         }
 
-        // СТАРТ ПРИЛОЖЕНИЯ
-        updateMyProfileUI();
-        loadHistory();
-        trackPresence();
+        // ЗАПУСК ПОСЛЕДОВАТЕЛЬНОСТИ
+        (async () => {
+            await syncProfileWithDB();
+            await loadChannels();
+            trackPresence();
+        })();
     </script>
 </body>
 </html>
