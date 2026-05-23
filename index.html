@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DisClone - Free Messenger</title>
+    <!-- Подключаем официальный JS-клиент Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { display: flex; height: 100vh; background-color: #313338; color: #dbdee1; }
+        
+        /* Боковая панель (Каналы) */
+        .sidebar { width: 240px; background-color: #2b2d31; display: flex; flex-direction: column; padding: 10px; }
+        .sidebar h2 { font-size: 16px; color: #fff; margin-bottom: 15px; padding-left: 5px; }
+        .channel-btn { background: #35373c; border: none; color: #949ba4; padding: 8px 12px; border-radius: 4px; text-align: left; cursor: pointer; margin-bottom: 5px; font-weight: 500; }
+        .channel-btn.active { background: #404249; color: #fff; }
+        .voice-section { margin-top: auto; padding: 10px; background: #232428; border-radius: 4px; text-align: center; }
+        .voice-btn { background: #248046; border: none; color: white; padding: 8px; width: 100%; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .voice-btn.connected { background: #da373c; }
+
+        /* Основная зона чата */
+        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: #313338; }
+        .chat-header { height: 48px; border-bottom: 1px solid #1f2023; display: flex; align-items: center; padding: 0 16px; font-weight: bold; color: #fff; }
+        .messages-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        
+        /* Стили сообщений */
+        .message { display: flex; flex-direction: column; }
+        .msg-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .msg-user { font-weight: 600; color: #f2f3f5; font-size: 14px; }
+        .msg-time { font-size: 11px; color: #949ba4; }
+        .msg-content { color: #dbdee1; font-size: 15px; word-break: break-word; }
+
+        /* Поле ввода */
+        .input-area { padding: 0 16px 24px 16px; background-color: #313338; }
+        .input-wrapper { background-color: #383a40; border-radius: 8px; padding: 10px 16px; display: flex; }
+        .input-wrapper input { background: none; border: none; color: #dbdee1; width: 100%; outline: none; font-size: 15px; }
+    </style>
+</head>
+<body>
+
+    <!-- Навигация слева -->
+    <div class="sidebar">
+        <h2>Текстовые каналы</h2>
+        <button class="channel-btn active"># общая-флудилка</button>
+        
+        <div class="voice-section">
+            <div id="voice-status" style="font-size: 12px; margin-bottom: 5px; color: #23a55a;">Голос: Отключен</div>
+            <button class="voice-btn" id="voiceToggleBtn" onclick="toggleVoice()">Войти в Голос</button>
+        </div>
+    </div>
+
+    <!-- Основной чат -->
+    <div class="chat-container">
+        <div class="chat-header"># общая-флудилка</div>
+        <div class="messages-list" id="messagesList"></div>
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input type="text" id="msgInput" placeholder="Написать в #общая-флудилка" onkeydown="if(event.key === 'Enter') sendMessage()">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Supabase (ЗАМЕНИ НА СВОИ ДАННЫЕ)
+        const SUPABASE_URL = 'https://nfbfynjojzissgriesaf.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_ACa94xdo6KBsxNAmLoy4tQ_SKxK1Cn7';
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Генерируем случайное имя пользователя для теста, если нет в памяти
+        let myUsername = localStorage.getItem('chat_username') || 'Юзер_' + Math.floor(Math.random() * 1000);
+        localStorage.setItem('chat_username', myUsername);
+
+        const messagesList = document.getElementById('messagesList');
+        const msgInput = document.getElementById('msgInput');
+
+        // 1. Загрузка истории сообщений при старте
+        async function loadHistory() {
+            const { data, error } = await supabase
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: true })
+                .limit(100);
+
+            if (error) console.error('Ошибка загрузки истории:', error);
+            else data.forEach(appendMessage);
+        }
+
+        // 2. Функция отправки сообщения в базу
+        async function sendMessage() {
+            const text = msgInput.value.trim();
+            if (!text) return;
+
+            msgInput.value = '';
+
+            const { error } = await supabase
+                .from('messages')
+                .insert([{ username: myUsername, content: text }]);
+
+            if (error) console.error('Ошибка отправки:', error);
+        }
+
+        // 3. Добавление сообщения на экран
+        function appendMessage(msg) {
+            const msgEl = document.createElement('div');
+            msgEl.className = 'message';
+            
+            const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            msgEl.innerHTML = `
+                <div class="msg-meta">
+                    <span class="msg-user">${escapeHtml(msg.username)}</span>
+                    <span class="msg-time">${time}</span>
+                </div>
+                <div class="msg-content">${escapeHtml(msg.content)}</div>
+            `;
+            messagesList.appendChild(msgEl);
+            messagesList.scrollTop = messagesList.scrollHeight; // Скролл вниз
+        }
+
+        // Хелпер для защиты от XSS
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // 4. Подписка на реалтайм обновления базы данных
+        supabase
+            .channel('schema-db-changes')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                appendMessage(payload.new);
+            })
+            .subscribe();
+
+        // Запускаем загрузку истории
+        loadHistory();
+
+        // --- ЗАГОТОВКА ДЛЯ ГОЛОСА (WebRTC через Supabase Broadcast) ---
+        let inVoice = false;
+        const voiceChannel = supabase.channel('voice-room');
+
+        // Слушаем сигналы от других участников для P2P коннекта
+        voiceChannel.on('broadcast', { event: 'webrtc-signal' }, ({ payload }) => {
+            if (payload.target === myUsername) {
+                console.log('Получен сигнал WebRTC от:', payload.sender, payload.signal);
+                // Тут будет обработка оффера/ансвера от WebRTC
+            }
+        }).subscribe();
+
+        function toggleVoice() {
+            const btn = document.getElementById('voiceToggleBtn');
+            const status = document.getElementById('voiceStatus');
+            
+            if (!inVoice) {
+                // Запрашиваем микрофон
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        inVoice = true;
+                        btn.innerText = 'Выйти из Голоса';
+                        btn.className = 'voice-btn connected';
+                        status.innerText = 'Голос: Подключен';
+                        status.style.color = '#da373c';
+                        
+                        // Отправляем сигнал в комнату, что мы зашли
+                        voiceChannel.send({
+                            type: 'broadcast',
+                            event: 'webrtc-signal',
+                            payload: { sender: myUsername, type: 'join' }
+                        });
+                    })
+                    .catch(err => alert('Нужен доступ к микрофону: ' + err));
+            } else {
+                inVoice = false;
+                btn.innerText = 'Войти в Голос';
+                btn.className = 'voice-btn';
+                status.innerText = 'Голос: Отключен';
+                status.style.color = '#23a55a';
+            }
+        }
+    </script>
+</body>
+</html>
